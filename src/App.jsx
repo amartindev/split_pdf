@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react'
 import { PDFDocument } from 'pdf-lib'
-import { FileText, Check, Plus, X, Scissors, RotateCcw, Download, Link2, FileDown, GripVertical, Loader2 } from 'lucide-react'
+import { Check, Plus, X, Scissors, RotateCcw, Download, Link2, FileDown, GripVertical, Loader2 } from 'lucide-react'
 import './App.css'
 
 function App() {
@@ -14,48 +14,96 @@ function App() {
   const [processingProgress, setProcessingProgress] = useState({ current: 0, total: 0, message: '' })
   const [isLoading, setIsLoading] = useState(false)
   const fileInputRef = useRef(null)
+  const [isDragActive, setIsDragActive] = useState(false)
+  const dragCounterRef = useRef(0)
+
+  // Procesa un archivo PDF (se reutiliza para input y drop)
+  const processFile = async (file) => {
+    if (!file || file.type !== 'application/pdf') {
+      alert('Por favor, sube un archivo PDF válido')
+      return
+    }
+
+    setIsLoading(true)
+    setProcessingProgress({ current: 0, total: 100, message: 'Cargando archivo...' })
+
+    try {
+      setPdfFile(file)
+
+      // Leer el archivo en chunks para archivos grandes
+      const arrayBuffer = await file.arrayBuffer()
+      setPdfBytes(arrayBuffer)
+
+      setProcessingProgress({ current: 50, total: 100, message: 'Analizando PDF...' })
+
+      // Usar setTimeout para no bloquear el hilo principal
+      await new Promise(resolve => setTimeout(resolve, 0))
+
+      // Obtener el número total de páginas
+      const pdfDoc = await PDFDocument.load(arrayBuffer, {
+        ignoreEncryption: false,
+        capNumbers: false,
+        parseSpeed: 1 // Más rápido pero menos preciso para archivos grandes
+      })
+      const pages = pdfDoc.getPageCount()
+      setTotalPages(pages)
+
+      // Resetear rangos con el primer rango
+      setRanges([{ start: 1, end: Math.min(1, pages), name: '' }])
+      setDividedPdfs([])
+
+      setProcessingProgress({ current: 100, total: 100, message: 'Completado' })
+    } catch (error) {
+      console.error('Error al cargar el PDF:', error)
+      alert('Error al cargar el PDF. El archivo puede estar corrupto o ser demasiado grande.')
+    } finally {
+      setIsLoading(false)
+      setTimeout(() => setProcessingProgress({ current: 0, total: 0, message: '' }), 500)
+    }
+  }
 
   const handleFileUpload = async (event) => {
     const file = event.target.files[0]
-    if (file && file.type === 'application/pdf') {
-      setIsLoading(true)
-      setProcessingProgress({ current: 0, total: 100, message: 'Cargando archivo...' })
-      
-      try {
-        setPdfFile(file)
-        
-        // Leer el archivo en chunks para archivos grandes
-        const arrayBuffer = await file.arrayBuffer()
-        setPdfBytes(arrayBuffer)
-        
-        setProcessingProgress({ current: 50, total: 100, message: 'Analizando PDF...' })
-        
-        // Usar setTimeout para no bloquear el hilo principal
-        await new Promise(resolve => setTimeout(resolve, 0))
-        
-        // Obtener el número total de páginas
-        const pdfDoc = await PDFDocument.load(arrayBuffer, {
-          ignoreEncryption: false,
-          capNumbers: false,
-          parseSpeed: 1 // Más rápido pero menos preciso para archivos grandes
-        })
-        const pages = pdfDoc.getPageCount()
-        setTotalPages(pages)
-        
-        // Resetear rangos con el primer rango
-        setRanges([{ start: 1, end: Math.min(1, pages), name: '' }])
-        setDividedPdfs([])
-        
-        setProcessingProgress({ current: 100, total: 100, message: 'Completado' })
-      } catch (error) {
-        console.error('Error al cargar el PDF:', error)
-        alert('Error al cargar el PDF. El archivo puede estar corrupto o ser demasiado grande.')
-      } finally {
-        setIsLoading(false)
-        setTimeout(() => setProcessingProgress({ current: 0, total: 0, message: '' }), 500)
-      }
-    } else {
-      alert('Por favor, sube un archivo PDF válido')
+    await processFile(file)
+  }
+
+  const handleDragEnter = (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    dragCounterRef.current++
+    if (e.dataTransfer.items && e.dataTransfer.items.length > 0) {
+      setIsDragActive(true)
+    }
+  }
+
+  const handleDragLeave = (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    dragCounterRef.current--
+    if (dragCounterRef.current === 0) {
+      setIsDragActive(false)
+    }
+  }
+
+  const handleDragOverUpload = (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (e.dataTransfer) {
+      e.dataTransfer.dropEffect = 'copy'
+    }
+  }
+
+  const handleDropFile = async (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragActive(false)
+    dragCounterRef.current = 0
+    
+    const file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]
+    if (file) {
+      // Reset the file input so the same file can be selected again if needed
+      if (fileInputRef.current) fileInputRef.current.value = ''
+      await processFile(file)
     }
   }
 
@@ -368,7 +416,13 @@ function App() {
         <h1>Ruba Split Pdf</h1>
         
         <div className="upload-section">
-          <div className="upload-area">
+          <div
+            className={`upload-area ${isDragActive ? 'drag-active' : ''}`}
+            onDragEnter={handleDragEnter}
+            onDragOver={handleDragOverUpload}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDropFile}
+          >
             <input
               ref={fileInputRef}
               type="file"
@@ -399,8 +453,9 @@ function App() {
                 </div>
               ) : (
                 <div className="upload-content">
-                  <FileText className="upload-icon" size={48} />
+                  <img src="/assets/pdf-file.png" alt="PDF icon" className="upload-icon-image" />
                   <span>Haz clic para subir un PDF</span>
+                  <span className="drag-hint">o arrastra y suelta un archivo aquí</span>
                 </div>
               )}
             </label>

@@ -15,9 +15,9 @@
 
 .app {
   min-height: 100vh;
-  background: #f5f5f5;
+  background: #c4e0f6;
   padding: 20px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
 }
@@ -28,20 +28,42 @@
   background: white;
   border-radius: 8px;
   padding: 40px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e5e5e5;
+  box-shadow: 0 2px 8px rgba(10, 172, 215, 0.15);
+  border: 1px solid #bbdcf5;
 }
 
 h1 {
-  color: #1a1a1a;
+  font-family: 'Poppins', sans-serif;
+  background: linear-gradient(135deg, #0aacd7 0%, #58d6e7 50%, #0aacd7 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
   text-align: center;
   margin-bottom: 30px;
-  font-size: 2em;
-  font-weight: 600;
+  font-size: 2.5em;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  text-shadow: 0 2px 10px rgba(10, 172, 215, 0.2);
+  position: relative;
+  display: inline-block;
+  width: 100%;
+}
+
+h1::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80px;
+  height: 4px;
+  background: linear-gradient(90deg, #0aacd7, #58d6e7, #0aacd7);
+  border-radius: 2px;
 }
 
 h2 {
-  color: #333;
+  color: #000000;
   margin-bottom: 20px;
   font-size: 1.25em;
   font-weight: 600;
@@ -67,16 +89,44 @@ h2 {
   align-items: center;
   justify-content: center;
   padding: 60px 20px;
-  border: 2px dashed #d1d5db;
+  border: 2px dashed #58d6e7;
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s ease;
-  background: #fafafa;
+  background: linear-gradient(135deg, #ffffff 0%, #bbdcf5 50%, #c4e0f6 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.upload-label::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at center, rgba(255, 255, 255, 0.6) 0%, rgba(196, 224, 246, 0.3) 70%, rgba(187, 220, 245, 0.5) 100%);
+  pointer-events: none;
 }
 
 .upload-label:hover {
-  background: #f5f5f5;
-  border-color: #9ca3af;
+  background: linear-gradient(135deg, #ffffff 0%, #c4e0f6 50%, #bbdcf5 100%);
+  border-color: #0aacd7;
+}
+
+.upload-label:hover::before {
+  background: radial-gradient(circle at center, rgba(255, 255, 255, 0.7) 0%, rgba(196, 224, 246, 0.4) 70%, rgba(187, 220, 245, 0.6) 100%);
+}
+
+/* Estado visual cuando se arrastra un archivo sobre el area */
+.upload-area.drag-active .upload-label {
+  border-color: #0aacd7;
+  background: linear-gradient(135deg, #c4e0f6 0%, #58d6e7 50%, #0aacd7 100%);
+  box-shadow: 0 4px 12px rgba(10, 172, 215, 0.3);
+}
+
+.upload-area.drag-active .upload-label::before {
+  background: radial-gradient(circle at center, rgba(255, 255, 255, 0.5) 0%, rgba(196, 224, 246, 0.2) 70%, rgba(88, 214, 231, 0.3) 100%);
 }
 
 .upload-content {
@@ -84,29 +134,43 @@ h2 {
   flex-direction: column;
   align-items: center;
   gap: 12px;
+  position: relative;
+  z-index: 1;
 }
 
 .upload-icon {
-  color: #6b7280;
+  color: #0aacd7;
+}
+
+.upload-icon-image {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
 }
 
 .file-name {
   font-size: 1em;
-  color: #1a1a1a;
+  color: #000000;
   font-weight: 500;
 }
 
 .file-info {
-  color: #6b7280;
+  color: #0aacd7;
   font-size: 0.875em;
+}
+
+.drag-hint {
+  color: #58d6e7;
+  font-size: 0.875em;
+  margin-top: 4px;
 }
 
 .ranges-section {
   margin-bottom: 30px;
   padding: 24px;
-  background: #fafafa;
+  background: #bbdcf5;
   border-radius: 8px;
-  border: 1px solid #e5e5e5;
+  border: 1px solid #58d6e7;
 }
 
 .ranges-list {
@@ -121,7 +185,7 @@ h2 {
   margin-bottom: 15px;
   background: white;
   border-radius: 8px;
-  border: 1px solid #e5e5e5;
+  border: 1px solid #58d6e7;
 }
 
 .range-inputs {
@@ -141,25 +205,26 @@ h2 {
 
 .input-group label {
   font-size: 0.875em;
-  color: #4b5563;
+  color: #000000;
   font-weight: 500;
 }
 
 .number-input,
 .text-input {
   padding: 10px 12px;
-  border: 1px solid #d1d5db;
+  border: 1px solid #58d6e7;
   border-radius: 6px;
   font-size: 0.9375em;
   transition: border-color 0.2s ease;
   background: white;
-  color: #1a1a1a;
+  color: #000000;
 }
 
 .number-input:focus,
 .text-input:focus {
   outline: none;
-  border-color: #3b82f6;
+  border-color: #0aacd7;
+  box-shadow: 0 0 0 3px rgba(10, 172, 215, 0.1);
 }
 
 .text-input {
@@ -188,7 +253,7 @@ h2 {
 .add-range-btn {
   width: 100%;
   padding: 12px;
-  background: #3b82f6;
+  background: #0aacd7;
   color: white;
   border: none;
   border-radius: 6px;
@@ -203,7 +268,7 @@ h2 {
 }
 
 .add-range-btn:hover:not(:disabled) {
-  background: #2563eb;
+  background: #58d6e7;
 }
 
 .add-range-btn:disabled {
@@ -214,9 +279,9 @@ h2 {
 .progress-section {
   margin-bottom: 20px;
   padding: 16px;
-  background: #f0f9ff;
+  background: #bbdcf5;
   border-radius: 6px;
-  border: 1px solid #bae6fd;
+  border: 1px solid #58d6e7;
 }
 
 .progress-info {
@@ -224,21 +289,21 @@ h2 {
   align-items: center;
   gap: 10px;
   margin-bottom: 10px;
-  color: #1e40af;
+  color: #0aacd7;
   font-weight: 500;
 }
 
 .progress-bar-container {
   width: 100%;
   height: 8px;
-  background: #e0e7ff;
+  background: #c4e0f6;
   border-radius: 4px;
   overflow: hidden;
 }
 
 .progress-bar {
   height: 100%;
-  background: #3b82f6;
+  background: #0aacd7;
   border-radius: 4px;
   transition: width 0.3s ease;
 }
@@ -266,12 +331,12 @@ h2 {
 }
 
 .divide-btn {
-  background: #3b82f6;
+  background: #0aacd7;
   color: white;
 }
 
 .divide-btn:hover:not(:disabled) {
-  background: #2563eb;
+  background: #58d6e7;
 }
 
 .divide-btn:disabled {
@@ -280,12 +345,12 @@ h2 {
 }
 
 .reset-btn {
-  background: #6b7280;
+  background: #000000;
   color: white;
 }
 
 .reset-btn:hover:not(:disabled) {
-  background: #4b5563;
+  background: #333333;
 }
 
 .reset-btn:disabled {
@@ -296,9 +361,9 @@ h2 {
 .results-section {
   margin-top: 30px;
   padding: 24px;
-  background: #fafafa;
+  background: #bbdcf5;
   border-radius: 8px;
-  border: 1px solid #e5e5e5;
+  border: 1px solid #58d6e7;
 }
 
 .pdfs-list {
@@ -313,27 +378,27 @@ h2 {
   margin-bottom: 10px;
   background: white;
   border-radius: 6px;
-  border: 1px solid #e5e5e5;
+  border: 1px solid #58d6e7;
   cursor: move;
   transition: all 0.2s ease;
   gap: 12px;
 }
 
 .pdf-item:hover {
-  border-color: #3b82f6;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  border-color: #0aacd7;
+  box-shadow: 0 2px 4px rgba(10, 172, 215, 0.2);
 }
 
 .pdf-item.dragging {
   opacity: 0.5;
-  border-color: #3b82f6;
-  box-shadow: 0 4px 8px rgba(59, 130, 246, 0.2);
+  border-color: #0aacd7;
+  box-shadow: 0 4px 8px rgba(10, 172, 215, 0.3);
 }
 
 .drag-handle {
   display: flex;
   align-items: center;
-  color: #9ca3af;
+  color: #58d6e7;
   cursor: grab;
   padding: 4px;
   flex-shrink: 0;
@@ -344,7 +409,7 @@ h2 {
 }
 
 .pdf-item:hover .drag-handle {
-  color: #6b7280;
+  color: #0aacd7;
 }
 
 .pdf-info {
@@ -356,17 +421,17 @@ h2 {
 
 .pdf-name {
   font-weight: 500;
-  color: #1a1a1a;
+  color: #000000;
 }
 
 .pdf-range {
   font-size: 0.875em;
-  color: #6b7280;
+  color: #0aacd7;
 }
 
 .download-btn {
   padding: 10px 16px;
-  background: #10b981;
+  background: #0aacd7;
   color: white;
   border: none;
   border-radius: 6px;
@@ -381,13 +446,13 @@ h2 {
 }
 
 .download-btn:hover {
-  background: #059669;
+  background: #58d6e7;
 }
 
 .download-all-btn {
   width: 100%;
   padding: 14px;
-  background: #10b981;
+  background: #0aacd7;
   color: white;
   border: none;
   border-radius: 6px;
@@ -402,7 +467,7 @@ h2 {
 }
 
 .download-all-btn:hover:not(:disabled) {
-  background: #059669;
+  background: #58d6e7;
 }
 
 .download-all-btn:disabled {
@@ -419,7 +484,7 @@ h2 {
 .merge-btn {
   width: 100%;
   padding: 14px;
-  background: #8b5cf6;
+  background: #58d6e7;
   color: white;
   border: none;
   border-radius: 6px;
@@ -434,7 +499,7 @@ h2 {
 }
 
 .merge-btn:hover:not(:disabled) {
-  background: #7c3aed;
+  background: #0aacd7;
 }
 
 .merge-btn:disabled {
