@@ -17,6 +17,29 @@ function App() {
   const [isDragActive, setIsDragActive] = useState(false)
   const dragCounterRef = useRef(0)
 
+  // Función rápida para obtener el número de páginas sin cargar todo el documento
+  const getPageCountFast = async (arrayBuffer) => {
+    try {
+      // Intentar leer el número de páginas directamente del PDF sin parsear todo
+      const uint8Array = new Uint8Array(arrayBuffer)
+      const text = new TextDecoder('latin1').decode(uint8Array.slice(0, Math.min(65536, uint8Array.length)))
+      
+      // Buscar el patrón /Count seguido de un número (número de páginas)
+      const countMatch = text.match(/\/Count\s+(\d+)/g)
+      if (countMatch) {
+        // Buscar el último /Count que generalmente es el número total de páginas
+        const lastMatch = countMatch[countMatch.length - 1]
+        const pageCount = parseInt(lastMatch.match(/\d+/)[0])
+        if (pageCount > 0 && pageCount < 100000) { // Validación razonable
+          return pageCount
+        }
+      }
+    } catch (e) {
+      // Si falla, continuar con el método normal
+    }
+    return null
+  }
+
   // Procesa un archivo PDF (se reutiliza para input y drop)
   const processFile = async (file) => {
     if (!file || file.type !== 'application/pdf') {
@@ -30,22 +53,33 @@ function App() {
     try {
       setPdfFile(file)
 
-      // Leer el archivo en chunks para archivos grandes
+      // Leer el archivo
       const arrayBuffer = await file.arrayBuffer()
       setPdfBytes(arrayBuffer)
 
-      setProcessingProgress({ current: 50, total: 100, message: 'Analizando PDF...' })
+      // Mostrar el archivo inmediatamente sin esperar la validación completa
+      setProcessingProgress({ current: 30, total: 100, message: 'Validando PDF...' })
 
-      // Usar setTimeout para no bloquear el hilo principal
-      await new Promise(resolve => setTimeout(resolve, 0))
+      // Intentar obtener el número de páginas rápidamente primero
+      let pages = await getPageCountFast(arrayBuffer)
+      
+      if (!pages) {
+        // Si el método rápido falla, usar el método completo pero optimizado
+        setProcessingProgress({ current: 50, total: 100, message: 'Analizando PDF...' })
+        
+        // Usar setTimeout para no bloquear el hilo principal
+        await new Promise(resolve => setTimeout(resolve, 0))
 
-      // Obtener el número total de páginas
-      const pdfDoc = await PDFDocument.load(arrayBuffer, {
-        ignoreEncryption: false,
-        capNumbers: false,
-        parseSpeed: 1 // Más rápido pero menos preciso para archivos grandes
-      })
-      const pages = pdfDoc.getPageCount()
+        // Obtener el número total de páginas con parseSpeed más rápido
+        const pdfDoc = await PDFDocument.load(arrayBuffer, {
+          ignoreEncryption: false,
+          capNumbers: false,
+          parseSpeed: 2, // Más rápido: ignora objetos no esenciales
+          throwOnInvalidBytes: false // No lanzar error en bytes inválidos menores
+        })
+        pages = pdfDoc.getPageCount()
+      }
+
       setTotalPages(pages)
 
       // Resetear rangos con el primer rango
@@ -56,6 +90,8 @@ function App() {
     } catch (error) {
       console.error('Error al cargar el PDF:', error)
       alert('Error al cargar el PDF. El archivo puede estar corrupto o ser demasiado grande.')
+      setPdfFile(null)
+      setPdfBytes(null)
     } finally {
       setIsLoading(false)
       setTimeout(() => setProcessingProgress({ current: 0, total: 0, message: '' }), 500)
@@ -203,7 +239,8 @@ function App() {
       const sourcePdf = await PDFDocument.load(pdfBytes, {
         ignoreEncryption: false,
         capNumbers: false,
-        parseSpeed: 1
+        parseSpeed: 1,
+        throwOnInvalidBytes: false // Más tolerante con bytes inválidos menores
       })
       
       // Permitir que el navegador respire
@@ -413,7 +450,7 @@ function App() {
   return (
     <div className="app">
       <div className="container">
-        <h1>Ruba Split Pdf</h1>
+        <h1 onClick={() => window.location.reload()} style={{ cursor: 'pointer' }}>Ruba Split Pdf</h1>
         
         <div className="upload-section">
           <div

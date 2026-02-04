@@ -48,6 +48,12 @@ h1 {
   position: relative;
   display: inline-block;
   width: 100%;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+h1:hover {
+  transform: scale(1.02);
+  opacity: 0.9;
 }
 
 h1::after {
